@@ -152,3 +152,8 @@ AXES_FAILURE_LIMIT = 5
 AXES_COOLOFF_TIME = 1
 AXES_LOCKOUT_TEMPLATE = None
 AXES_RESET_ON_SUCCESS = True
+
+# ===== SESSION SECURITY =====
+SESSION_COOKIE_AGE = 900          # Session expires after 15 mins (900 seconds)
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True  # Logout when browser closes
+SESSION_SAVE_EVERY_REQUEST = True   # Reset timer on every request

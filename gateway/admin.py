@@ -32,6 +32,11 @@ class NewsletterSubscriberResource(resources.ModelResource):
         model = NewsletterSubscriber
         fields = ('email', 'subscription_type', 'is_active', 'is_confirmed', 'subscribed_at')
 
+class BookResource(resources.ModelResource):
+    class Meta:
+        model = Book
+        fields = ('title', 'subtitle', 'publication_year', 'amazon_link', 'goodreads_link')
+
 # ===== THEME ADMIN =====
 @admin.register(Theme)
 class ThemeAdmin(admin.ModelAdmin):
@@ -91,7 +96,8 @@ class GatewayPageAdmin(admin.ModelAdmin):
 
 # ===== BOOK ADMIN (UPDATED WITH PREVIEW & LIVE LINK) =====
 @admin.register(Book)
-class BookAdmin(admin.ModelAdmin):
+class BookAdmin(ExportMixin, admin.ModelAdmin):
+    resource_class = BookResource
     list_display = ('cover_preview', 'title', 'publication_year', 'is_featured', 'amazon_link_display', 'view_on_site_link')
     list_filter = ('is_featured', 'publication_year')
     search_fields = ('title', 'subtitle', 'description')
@@ -99,7 +105,7 @@ class BookAdmin(admin.ModelAdmin):
     readonly_fields = ('view_on_site_link',)
     
     fieldsets = (
-        ('Book Details', {'fields': ('title', 'subtitle', 'description', 'cover_image')}),
+        ('Book Details', {'fields': ('title', 'slug', 'subtitle', 'description', 'cover_image')}),
         ('Publication Info', {'fields': ('publisher', 'publication_year')}),
         ('Links', {'fields': ('amazon_link', 'goodreads_link')}),
         ('Display Options', {'fields': ('is_featured', 'view_on_site_link')}),
@@ -137,6 +143,10 @@ class NewsletterSubscriberResource(resources.ModelResource):
     class Meta:
         model = NewsletterSubscriber
         fields = ('email', 'subscription_type', 'is_active', 'is_confirmed', 'subscribed_at')
+
+    class Meta:
+        model = Book
+        fields = ('title', 'subtitle', 'publication_year', 'amazon_link', 'goodreads_link')
 
 # ===== ARTICLE ADMIN =====
 @admin.register(Article)
@@ -225,6 +235,10 @@ class NewsletterSubscriberResource(resources.ModelResource):
     class Meta:
         model = NewsletterSubscriber
         fields = ('email', 'subscription_type', 'is_active', 'is_confirmed', 'subscribed_at')
+
+    class Meta:
+        model = Book
+        fields = ('title', 'subtitle', 'publication_year', 'amazon_link', 'goodreads_link')
 
 class ContactMessageResource(resources.ModelResource):
     class Meta:
