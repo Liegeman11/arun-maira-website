@@ -1,14 +1,13 @@
 from django.contrib import admin
 from import_export import resources
 from import_export.admin import ExportMixin
-
 from django.utils.html import format_html
 from django.utils.text import Truncator
 from django.utils.safestring import mark_safe
 from django.urls import reverse
 from django.utils import timezone
 from .models import (
-    Book, Theme, GatewayPage, SocialMediaProfile, ContactMessage, 
+    Book, Theme, GatewayPage, SocialMediaProfile, ContactMessage,
     NewsletterSubscriber, Article, Talk, UploadedFile, SiteSettings
 )
 
@@ -45,7 +44,7 @@ class ThemeAdmin(admin.ModelAdmin):
     search_fields = ('name', 'description')
     list_editable = ('order',)
     prepopulated_fields = {'slug': ('name',)}
-    
+
     fieldsets = (
         ('Basic Information', {
             'fields': ('name', 'slug', 'bucket', 'description')
@@ -54,12 +53,12 @@ class ThemeAdmin(admin.ModelAdmin):
             'fields': ('order',)
         }),
     )
-    
+
     def bucket_display(self, obj):
         colors = {
-            'system': '#4a90e2',      
-            'me_us': '#2ecc71',       
-            'future_india': '#e74c3c' 
+            'system': '#4a90e2',
+            'me_us': '#2ecc71',
+            'future_india': '#e74c3c'
         }
         color = colors.get(obj.bucket, '#95a5a6')
         bucket_mapping = {
@@ -67,34 +66,43 @@ class ThemeAdmin(admin.ModelAdmin):
             'me_us': 'Me/Us',
             'future_india': 'Future of India'
         }
-        bucket_display = bucket_mapping.get(obj.bucket, obj.bucket.title())
+        label = bucket_mapping.get(obj.bucket, obj.bucket.title())
         return format_html(
             '<span style="background-color: {}; color: white; padding: 2px 8px; '
             'border-radius: 12px; font-size: 0.85em; font-weight: bold;">{}</span>',
-            color, bucket_display
+            color, label
         )
     bucket_display.short_description = 'Category'
 
     def article_count(self, obj):
         count = obj.article_set.count()
-        return format_html('<span style="background-color: #f3f4f6; padding: 2px 8px; border-radius: 12px;">{}</span>', count)
+        return format_html(
+            '<span style="background-color: #f3f4f6; padding: 2px 8px; border-radius: 12px;">{}</span>',
+            count
+        )
+    article_count.short_description = 'Articles'
 
 # ===== GATEWAY PAGE ADMIN =====
 @admin.register(GatewayPage)
 class GatewayPageAdmin(admin.ModelAdmin):
-    list_display = ('page_type_icon', 'title','show_in_navigation', 'nav_status_badge', 'navigation_order', 'updated_at')
+    list_display = ('page_type_icon', 'title', 'show_in_navigation', 'nav_status_badge', 'navigation_order', 'updated_at')
     list_editable = ('navigation_order', 'show_in_navigation')
     search_fields = ('title', 'content')
     readonly_fields = ('updated_at',)
-    
+
     def page_type_icon(self, obj):
-        icons = {'home': '🏠', 'about': '👤', 'books': '📚', 'themes': '🗂️', 'media': '📰', 'contact': '✉️', 'reading': '📖', 'listening': '🎧'}
+        icons = {
+            'home': '🏠', 'about': '👤', 'books': '📚', 'themes': '🗂️',
+            'media': '📰', 'contact': '✉️', 'reading': '📖', 'listening': '🎧'
+        }
         return f"{icons.get(obj.page_type, '📄')} {obj.get_page_type_display()}"
-    
+    page_type_icon.short_description = 'Page'
+
     def nav_status_badge(self, obj):
         return "🟢 Visible" if obj.show_in_navigation else "🔴 Hidden"
+    nav_status_badge.short_description = 'Status'
 
-# ===== BOOK ADMIN (UPDATED WITH PREVIEW & LIVE LINK) =====
+# ===== BOOK ADMIN =====
 @admin.register(Book)
 class BookAdmin(ExportMixin, admin.ModelAdmin):
     resource_class = BookResource
@@ -103,50 +111,39 @@ class BookAdmin(ExportMixin, admin.ModelAdmin):
     search_fields = ('title', 'subtitle', 'description')
     list_editable = ('is_featured',)
     readonly_fields = ('view_on_site_link',)
-    
+    prepopulated_fields = {'slug': ('title',)}
+
     fieldsets = (
         ('Book Details', {'fields': ('title', 'slug', 'subtitle', 'description', 'cover_image')}),
         ('Publication Info', {'fields': ('publisher', 'publication_year')}),
         ('Links', {'fields': ('amazon_link', 'goodreads_link')}),
         ('Display Options', {'fields': ('is_featured', 'view_on_site_link')}),
     )
-    prepopulated_fields = {'slug': ('title',)}
 
     def cover_preview(self, obj):
         if obj.cover_image:
-            return format_html('<img src="{}" style="width: 45px; height: 65px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd;" />', obj.cover_image.url)
+            return format_html(
+                '<img src="{}" style="width: 45px; height: 65px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd;" />',
+                obj.cover_image.url
+            )
         return mark_safe('<div style="width: 45px; height: 65px; background: #eee; text-align: center; line-height: 65px;">📚</div>')
     cover_preview.short_description = 'Cover'
 
     def view_on_site_link(self, obj):
         if obj.pk:
             url = reverse('book_list')
-            return format_html('<a href="{}" target="_blank" class="button" style="background: #8b7355; color: white; padding: 5px 10px; text-decoration: none; border-radius: 4px;">View in Library</a>', url)
+            return format_html(
+                '<a href="{}" target="_blank" class="button" style="background: #8b7355; color: white; padding: 5px 10px; text-decoration: none; border-radius: 4px;">View in Library</a>',
+                url
+            )
         return "Save to preview"
+    view_on_site_link.short_description = 'Preview'
 
     def amazon_link_display(self, obj):
         if obj.amazon_link:
-            return format_html('<a href="{}" target="_blank" style="color: #ff9900;"><i class="fab fa-amazon"></i> Shop</a>', obj.amazon_link)
+            return format_html('<a href="{}" target="_blank" style="color: #ff9900;">Shop</a>', obj.amazon_link)
         return "—"
-
-# ===== EXPORT RESOURCES =====
-class ArticleResource(resources.ModelResource):
-    class Meta:
-        model = Article
-        fields = ('title', 'status', 'publish_date', 'reading_time')
-
-class ContactMessageResource(resources.ModelResource):
-    class Meta:
-        model = ContactMessage
-
-class NewsletterSubscriberResource(resources.ModelResource):
-    class Meta:
-        model = NewsletterSubscriber
-        fields = ('email', 'subscription_type', 'is_active', 'is_confirmed', 'subscribed_at')
-
-    class Meta:
-        model = Book
-        fields = ('title', 'subtitle', 'publication_year', 'amazon_link', 'goodreads_link')
+    amazon_link_display.short_description = 'Amazon'
 
 # ===== ARTICLE ADMIN =====
 @admin.register(Article)
@@ -157,20 +154,57 @@ class ArticleAdmin(ExportMixin, admin.ModelAdmin):
     filter_horizontal = ('themes',)
     prepopulated_fields = {'slug': ('title',)}
     readonly_fields = ('created_at', 'updated_at', 'admin_preview_link')
-    
+
+    fieldsets = (
+        ('Content', {
+            'fields': ('title', 'slug', 'video_id', 'excerpt', 'content')
+        }),
+        ('Classification', {
+            'fields': ('category', 'subtopic', 'themes')
+        }),
+        ('Publishing', {
+            'fields': ('status', 'featured_article', 'publish_date')
+        }),
+        ('Media', {
+            'fields': ('featured_image', 'document')
+        }),
+        ('Reading Info', {
+            'fields': ('reading_time', 'estimated_read_time', 'external_link', 'author')
+        }),
+        ('Metadata', {
+            'fields': ('created_at', 'updated_at', 'admin_preview_link'),
+            'classes': ('collapse',)
+        }),
+    )
+
     def status_display(self, obj):
         color = '#10b981' if obj.status == 'published' else '#6b7280'
-        return format_html('<span style="background: {}; color: white; padding: 2px 8px; border-radius: 12px;">{}</span>', color, obj.status.upper())
+        return format_html(
+            '<span style="background: {}; color: white; padding: 2px 8px; border-radius: 12px;">{}</span>',
+            color, obj.status.upper()
+        )
+    status_display.short_description = 'Status'
 
     def category_display(self, obj):
-        return format_html('<span style="border: 1px solid #ddd; padding: 2px 8px; border-radius: 12px;">{}</span>', obj.get_category_display())
+        return format_html(
+            '<span style="border: 1px solid #ddd; padding: 2px 8px; border-radius: 12px;">{}</span>',
+            obj.get_category_display()
+        )
+    category_display.short_description = 'Category'
 
     def article_preview(self, obj):
-        return format_html('<small style="color: #666;">{}</small>', Truncator(obj.excerpt or obj.content).chars(50))
+        return format_html(
+            '<small style="color: #666;">{}</small>',
+            Truncator(obj.excerpt or obj.content).chars(50)
+        )
+    article_preview.short_description = 'Preview'
 
     def admin_preview_link(self, obj):
-        url = f"/reading.html#article/{obj.slug}"
-        return format_html('<a href="{}" target="_blank">View on Website</a>', url)
+        if obj.pk:
+            url = obj.get_absolute_url()
+            return format_html('<a href="{}" target="_blank">View on Website</a>', url)
+        return "Save first to preview"
+    admin_preview_link.short_description = 'Admin preview link'
 
 # ===== TALK ADMIN =====
 @admin.register(Talk)
@@ -182,17 +216,18 @@ class TalkAdmin(admin.ModelAdmin):
     prepopulated_fields = {'slug': ('title',)}
 
     def has_media_display(self, obj):
-        icon = "✅" if obj.external_link or obj.media_file else "❌"
-        return icon
+        return "✅" if obj.external_link or obj.media_file else "❌"
+    has_media_display.short_description = 'Has Media'
 
     def media_preview(self, obj):
-        if obj.youtube_id:
+        if obj.video_id:
             return format_html(
-                '<iframe width="320" height="180" src="https://www.youtube.com/embed/{}" frameborder="0"></iframe>', 
-                obj.youtube_id
+                '<iframe width="320" height="180" src="https://www.youtube.com/embed/{}" frameborder="0"></iframe>',
+                obj.video_id
             )
         return "No Preview"
-    
+    media_preview.short_description = 'Preview'
+
 # ===== REMAINING UTILITY ADMINS =====
 @admin.register(SocialMediaProfile)
 class SocialMediaProfileAdmin(admin.ModelAdmin):
@@ -229,22 +264,3 @@ class SiteSettingsAdmin(admin.ModelAdmin):
 
     def has_delete_permission(self, request, obj=None):
         return False
-
-
-class NewsletterSubscriberResource(resources.ModelResource):
-    class Meta:
-        model = NewsletterSubscriber
-        fields = ('email', 'subscription_type', 'is_active', 'is_confirmed', 'subscribed_at')
-
-    class Meta:
-        model = Book
-        fields = ('title', 'subtitle', 'publication_year', 'amazon_link', 'goodreads_link')
-
-class ContactMessageResource(resources.ModelResource):
-    class Meta:
-        model = ContactMessage
-
-class ArticleResource(resources.ModelResource):
-    class Meta:
-        model = Article
-        fields = ('title', 'status', 'publish_date', 'reading_time')

@@ -12,16 +12,16 @@ urlpatterns = [
     path('reading/', views.reading_list, name='reading_list'),
     path('listening/', views.listening, name='listening'),
     path('books/', views.book_list, name='book_list'),
-    
+
+
     # DETAIL PAGES
+    path('reading/topic/<slug:subtopic>/', views.reading_subtopic, name='reading_subtopic'),  # ← moved UP, prefix added
     path('reading/<slug:slug>/', views.reading_idea_detail, name='reading_idea_detail'),
     path('listening/<slug:slug>/', views.talk_detail, name='talk_detail'),
     path('books/<slug:slug>/', views.book_detail, name='book_detail'),
     path('talks/<slug:slug>/', views.talk_detail, name='talk_detail'),
     path('themes/<slug:slug>/', views.theme_detail, name='theme_detail'),
 
-    # READING SUBTOPICS
-    path('reading/<slug:subtopic>/', views.reading_subtopic, name='reading_subtopic'),
 
     # AUTHOR DASHBOARD
     path('author/dashboard/', views.author_dashboard, name='author_dashboard'),

@@ -21,8 +21,12 @@ def home(request):
     
     # Existing logic for snippets
     featured_books = Book.objects.filter(is_featured=True)[:3]
+    # recent_articles = Article.objects.filter(
+    #     status='published', category='READ'
+    # ).order_by('-publish_date')[:3]
+
     recent_articles = Article.objects.filter(
-        status='published', category='READ'
+        status='published', category__in=['READ', 'system', 'me_us', 'india']
     ).order_by('-publish_date')[:3]
     
     # New logic for the Thematic Gateway
@@ -83,11 +87,17 @@ def contact(request):
         'social_links': social_links
     })
 
-def reading_list(request):
-    # Articles now handle only reading content
-    articles = Article.objects.filter(category='READ', status='published').order_by('-publish_date')
-    return render(request, 'reading.html', {'articles': articles})
+# def reading_list(request):
+#     # Articles now handle only reading content
+#     articles = Article.objects.filter(category='READ', status='published').order_by('-publish_date')
+#     return render(request, 'reading.html', {'articles': articles})
 
+def reading_list(request):
+    articles = Article.objects.filter(
+        status='published',
+        category__in=['READ', 'system', 'me_us', 'india']
+    ).order_by('-publish_date')
+    return render(request, 'reading.html', {'articles': articles})
 
 def listening(request):
     # Fetch the page SEO/Header info
@@ -201,10 +211,6 @@ def manage_articles(request):
     return render(request, 'author/manage_articles.html', {'articles': articles})
 
 @login_required
-def upload_article(request):
-    return render(request, 'author/upload_article.html')
-
-@login_required
 def manage_talks(request):
     talks = Article.objects.filter(category='LISTEN').order_by('-publish_date')
     return render(request, 'author/manage_talks.html', {'talks': talks})
@@ -217,22 +223,23 @@ def upload_talk(request):
 def manage_contact_messages(request):
     messages = ContactMessage.objects.all().order_by('-created_at')
     return render(request, 'author/manage_contact_messages.html', {'contact_messages': messages})
+    
 
 @login_required
 def upload_article(request):
     if request.method == 'POST':
-        form = ArticleForm(request.POST)
+        form = ArticleForm(request.POST, request.FILES)  # ← add for image upload
         if form.is_valid():
             article = form.save(commit=False)
-            article.author = "Arun Maira"  # Auto-assign author
+            article.author = request.user  
             article.save()
-            form.save_m2m() # Important for many-to-many fields like 'themes'
+            form.save_m2m()
             messages.success(request, "Article uploaded successfully!")
             return redirect('manage_articles')
     else:
         form = ArticleForm()
-    
     return render(request, 'author/upload_article.html', {'form': form})
+
 
 @require_POST
 def newsletter_subscribe(request):
