@@ -15,22 +15,16 @@ env/
 ENV/
 .vscode/
 .idea/
-
 # Environment variables
 .env
 .env.local
 .env.*.local
-
 # OS
 .DS_Store
 Thumbs.db
-
 # IDE
-.vscode/
-.idea/
 *.swp
 *.swo
-
 # Database
 *.sqlite3
 *.db
@@ -38,5 +32,3 @@ media.zip.zip
 *.zip
 crop_thumbnails.py
 recrop_thumbnails.py
-media.zip.zip
-*.zip
